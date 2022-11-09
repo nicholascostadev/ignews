@@ -1,6 +1,6 @@
 import { GetServerSideProps } from 'next'
 import Head from 'next/head'
-import { getSession } from 'next-auth/client'
+import { getSession } from 'next-auth/react'
 import { RichText } from 'prismic-dom'
 import { getPrismicClient } from '../../services/prismic'
 import styles from '../../styles/post.module.scss' 
@@ -14,7 +14,7 @@ interface PostProps {
   }
 }
 
-function Post({ post }: PostProps) {
+export default function Post({ post }: PostProps) {
   return (
     <>
       <Head>
@@ -39,42 +39,36 @@ export const getServerSideProps: GetServerSideProps = async ({
   req,
   params,
 }) => {
-  const session = await getSession({ req })
-  const { slug } = params
+  const session = await getSession({ req }) as any
+  const prismic = getPrismicClient();
+  const response = await prismic.getByUID("publication", String(params?.slug));
 
   if (!session?.activeSubscription) {
     return {
       redirect: {
-        destination: `/posts/preview/${slug}`,
+        destination: `/posts/preview/${params?.slug}`,
         permanent: false,
       },
-    }
+    };
   }
-
-  const prismic = getPrismicClient(req)
-
-  const response = await prismic.getByUID('publication', String(slug), {})
-  const data = response.data as any
 
   const post = {
-    slug,
-    title: RichText.asText(data.title),
-    content: RichText.asHtml(data.content),
+    slug: response.uid,
+    title: response.data.Title,
+    content: RichText.asHtml(response.data.Content),
     updatedAt: new Date(response.last_publication_date).toLocaleDateString(
-      'pt-BR',
+      "pt-BR",
       {
-        day: '2-digit',
-        month: 'long',
-        year: 'numeric',
-      },
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      }
     ),
-  }
+  };
 
   return {
     props: {
       post,
     },
-  }
-}
-
-export default Post;
+  };
+};

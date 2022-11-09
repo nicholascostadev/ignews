@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react"
 import { mocked } from "jest-mock"
 import { getPrismicClient } from "../../services/prismic"
 import Post, { getStaticProps } from "../../pages/posts/preview/[slug]"
-import { useSession } from "next-auth/client"
+import { useSession } from "next-auth/react"
 import { useRouter } from "next/router"
 
 jest.mock("../../services/prismic")
@@ -21,7 +21,10 @@ describe("Post page", () => {
   it("renders correctly", () => {
     const useSessionMocked = mocked(useSession)
 
-    useSessionMocked.mockReturnValueOnce([null, false])
+    useSessionMocked.mockReturnValueOnce({
+      data: null,
+      status: "unauthenticated",
+    })
     render(<Post post={post} />)
 
     expect(screen.getByText("My new post")).toBeInTheDocument()

@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react'
-import { signIn, useSession } from 'next-auth/client'
+import { signIn, useSession } from 'next-auth/react'
 import { mocked } from 'jest-mock'
 import { useRouter } from 'next/router'
 import { SubscribeButton } from '.'
@@ -10,7 +10,10 @@ jest.mock('next/router')
 describe('SubscribeButton component', () => {
   it('renders correctly', () => {
     const useSessionMocked = mocked(useSession)
-    useSessionMocked.mockReturnValueOnce([null, false])
+    useSessionMocked.mockReturnValueOnce({
+      data: null,
+      status: "authenticated"
+    })
 
     render(<SubscribeButton />)
 
@@ -21,7 +24,10 @@ describe('SubscribeButton component', () => {
     const useSessionMocked = mocked(useSession)
     const signInMocked = mocked(signIn)
 
-    useSessionMocked.mockReturnValueOnce([null, false])
+    useSessionMocked.mockReturnValueOnce({
+      data: null,
+      status: "authenticated"
+    })
 
     render(<SubscribeButton />)
 
@@ -34,12 +40,12 @@ describe('SubscribeButton component', () => {
 
   it('redirects user to posts when user already has a subscription', () => {
     const useRouterMocked = mocked(useRouter)
-    const useSessionMocked = mocked(useSession)
+    const useSessionMocked = mocked(useSession) as any
     const pushMock = jest.fn()
 
     // Mocking functions
-    useSessionMocked.mockReturnValueOnce([
-      {
+    useSessionMocked.mockReturnValueOnce({
+      data: {
         user: {
           name: 'Nicholas Costa',
           email: 'nicholascostadev@gmail.com',
@@ -47,8 +53,8 @@ describe('SubscribeButton component', () => {
         activeSubscription: 'fake-active-subscription',
         expires: 'fake-expires',
       },
-      false,
-    ])
+      status: "authenticated",
+    })
 
     useRouterMocked.mockReturnValueOnce({
       push: pushMock,

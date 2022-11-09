@@ -1,5 +1,5 @@
 import { GetStaticPaths, GetStaticProps } from 'next'
-import { useSession } from 'next-auth/client'
+import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
 import Link from 'next/link'
@@ -18,14 +18,14 @@ interface PostPreviewProps {
 }
 
 export default function PostPreview({ post }: PostPreviewProps) {
-  const [session] = useSession()
+  const { data } = useSession() as any
   const router = useRouter()
 
   useEffect(() => {
-    if (session?.activeSubscription) {
+    if (data?.session?.activeSubscription) {
       router.push(`/posts/${post.slug}`)
     }
-  }, [session, router, post.slug])
+  }, [data?.session, router, post.slug])
 
   return (
     <>
@@ -53,40 +53,35 @@ export default function PostPreview({ post }: PostPreviewProps) {
     </>
   )
 }
-
-export const getStaticPaths: GetStaticPaths = async () => {
+export const getStaticPaths: GetStaticPaths = () => {
   return {
     paths: [],
-    fallback: 'blocking',
-  }
-}
+    fallback: "blocking",
+  };
+};
 
 export const getStaticProps: GetStaticProps = async ({ params }) => {
-  const { slug } = params
-
-  const prismic = getPrismicClient()
-
-  const response = await prismic.getByUID('publication', String(slug), {})
-  const data = response.data as any
+  const prismic = getPrismicClient();
+  const response = await prismic.getByUID("publication", String(params?.slug), {});
 
   const post = {
-    slug,
-    title: RichText.asText(data.title),
-    content: RichText.asHtml(data.content.splice(0, 3)),
+    slug: response.uid,
+    title: response.data.Title,
+    content: RichText.asHtml(response.data.Content.splice(0, 4)),
     updatedAt: new Date(response.last_publication_date).toLocaleDateString(
-      'pt-BR',
+      "pt-BR",
       {
-        day: '2-digit',
-        month: 'long',
-        year: 'numeric',
-      },
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      }
     ),
-  }
+  };
 
   return {
     props: {
       post,
     },
-    revalidate: 60 * 30, // 30 minutes
-  }
-}
+    revalidate: 60 * 30,
+  };
+};

@@ -42,49 +42,31 @@ export default function Posts({ posts }: PostsProps) {
 }
 
 export const getStaticProps: GetStaticProps = async () => {
-  const prismic = getPrismicClient()
+  const prismic = getPrismicClient();
+  const response = await prismic.getAllByType("publication");
 
-  const response = await prismic.query(
-    [Prismic.predicates.at('document.type', 'publication')],
-    {
-      fetch: ['publication.title', 'publication.content'],
-      pageSize: 100,
-    },
-  )
-
-  const responsePosts = response.results || []
-
-  if(responsePosts.length === 0) {
-    return {
-      props: {
-        posts: []
-      }
-    }
-  }
-  
-
-  const posts = responsePosts.map((post: any) => {
+  const posts = response.map((post) => {
     return {
       slug: post.uid,
-      title: RichText.asText(post.data.title),
+      title: post.data.Title,
       excerpt:
-        post.data.content.find((content) => content.type === 'paragraph')
-          ?.text ?? '',
+        post.data.Content.find((content: any) => content.type === "paragraph")
+          ?.text ?? "",
       updatedAt: new Date(post.last_publication_date).toLocaleDateString(
-        'pt-BR',
+        "pt-BR",
         {
-          day: '2-digit',
-          month: 'long',
-          year: 'numeric',
-        },
+          day: "2-digit",
+          month: "long",
+          year: "numeric",
+        }
       ),
-    }
-  })
+    };
+  });
 
   return {
     props: {
       posts,
     },
-    revalidate: 60 * 30, // 30 minutes
-  }
-}
+    revalidate: 60 * 60,
+  };
+};
