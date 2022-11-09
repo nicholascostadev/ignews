@@ -1,22 +1,20 @@
-import { fireEvent, render, screen } from '@testing-library/react';
-import { signIn, useSession } from 'next-auth/client';
+import { fireEvent, render, screen } from '@testing-library/react'
+import { signIn, useSession } from 'next-auth/client'
 import { mocked } from 'jest-mock'
-import Router, { useRouter } from 'next/router'
-import { SubscribeButton } from '.';
-
+import { useRouter } from 'next/router'
+import { SubscribeButton } from '.'
 
 jest.mock('next-auth/client')
-jest.mock("next/router")
+jest.mock('next/router')
 
 describe('SubscribeButton component', () => {
   it('renders correctly', () => {
-    
     const useSessionMocked = mocked(useSession)
     useSessionMocked.mockReturnValueOnce([null, false])
 
-    render(<SubscribeButton />);
+    render(<SubscribeButton />)
 
-    expect(screen.getByText('Subscribe now')).toBeInTheDocument();
+    expect(screen.getByText('Subscribe now')).toBeInTheDocument()
   })
 
   it('redirects user to sign in when not authenticated', () => {
@@ -25,7 +23,7 @@ describe('SubscribeButton component', () => {
 
     useSessionMocked.mockReturnValueOnce([null, false])
 
-    render(<SubscribeButton />);
+    render(<SubscribeButton />)
 
     const subscribeButton = screen.getByText('Subscribe now')
 
@@ -40,17 +38,20 @@ describe('SubscribeButton component', () => {
     const pushMock = jest.fn()
 
     // Mocking functions
-    useSessionMocked.mockReturnValueOnce([{
-      user: {
-        name: 'Nicholas Costa',
-        email: 'nicholascostadev@gmail.com',
+    useSessionMocked.mockReturnValueOnce([
+      {
+        user: {
+          name: 'Nicholas Costa',
+          email: 'nicholascostadev@gmail.com',
+        },
+        activeSubscription: 'fake-active-subscription',
+        expires: 'fake-expires',
       },
-      activeSubscription: 'fake-active-subscription',
-      expires: 'fake-expires'
-    }, false])
+      false,
+    ])
 
     useRouterMocked.mockReturnValueOnce({
-        push: pushMock
+      push: pushMock,
     } as any)
 
     render(<SubscribeButton />)
@@ -59,8 +60,6 @@ describe('SubscribeButton component', () => {
 
     fireEvent.click(subscribeButton)
 
-    expect(pushMock).toHaveBeenCalledWith("/posts")
+    expect(pushMock).toHaveBeenCalledWith('/posts')
   })
-
 })
-
