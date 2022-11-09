@@ -53,6 +53,14 @@ export const getStaticProps: GetStaticProps = async () => {
   )
 
   const responsePosts = response.results || []
+
+  if(responsePosts.length === 0) {
+    return {
+      props: {
+        posts: []
+      }
+    }
+  }
   
 
   const posts = responsePosts.map((post: any) => {
