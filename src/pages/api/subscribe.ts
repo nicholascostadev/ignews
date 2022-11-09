@@ -3,6 +3,7 @@ import { getSession } from 'next-auth/react'
 import { query as q } from 'faunadb'
 import { fauna } from '../../services/fauna'
 import { stripe } from '../../services/stripe'
+import { Session } from 'next-auth'
 
 type User = {
   ref: {
@@ -15,21 +16,18 @@ type User = {
 
 export default async (request: NextApiRequest, response: NextApiResponse) => {
   if (request.method === 'POST') {
-    const session = await getSession({ req: request })
-
-    if(!session || !session.user?.email) {
-      return response.status(401).send('Unauthorized')
-    }
+    const data = await getSession({ req: request }) as any
+    
 
     const user = await fauna.query<User>(
-      q.Get(q.Match(q.Index('user_by_email'), q.Casefold(session.user.email))),
+      q.Get(q.Match(q.Index('user_by_email'), q.Casefold(data.session.user.email))),
     )
 
     let customerId = user.data.stripe_customer_id
 
     if (!customerId) {
       const stripeCustomer = await stripe.customers.create({
-        email: session.user.email,
+        email: data.session.user.email,
       })
 
       await fauna.query(
