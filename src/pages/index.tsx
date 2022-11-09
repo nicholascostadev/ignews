@@ -3,7 +3,7 @@ import Head from 'next/head'
 import { SubscribeButton } from '../components/SubscribeButton'
 import { stripe } from '../services/stripe'
 
-import styles from './home.module.scss'
+import styles from '../styles/home.module.scss'
 
 interface HomeProps {
   product: {
